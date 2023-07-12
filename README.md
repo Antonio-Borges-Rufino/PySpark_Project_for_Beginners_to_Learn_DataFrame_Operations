@@ -118,3 +118,66 @@ df.select("Year","Reporting_Airline").filter((df.DepDelay<=0)&(df.ArrDelay<=0)).
               .
               .
 ```
+7. O que foi feito no código a seguir foi numerar as colunas a partir de um particionamento. Isso é especialmente importante quando queremos numerar o conjunto de dados a partir de uma partição.
+```
+ndf = Window.partitionBy("OriginState").orderBy("OriginAirportID")
+nova_coluna = df
+nova_coluna = nova_coluna.withColumn("row_number",row_number().over(ndf))
+nova_coluna.select("OriginState","OriginAirportID","row_number").filter(nova_coluna.OriginState != 'null').show()
+```
+#### Resultado
+```
++-----------+---------------+----------+
+|OriginState|OriginAirportID|row_number|
++-----------+---------------+----------+
+|         AK|          10165|         1|
+|         AK|          10165|         2|
+|         AK|          10170|         3|
+|         AK|          10170|         4|
+|         AK|          10170|         5|
+|         AK|          10170|         6|
+|         AK|          10245|         7|
+|         AK|          10245|         8|
+|         AK|          10299|         9|
+                   .
+                   .
+                   .
+```
+8. Agora, uma demonstração de caso de uso de UDF (User Define Function), primeiro, criando a função que queremos.
+```
+def udf_Teste_function(AirTime,Distance):
+    if AirTime is None:
+        return 0
+    if Distance is None:
+        return 0
+    return AirTime/Distance
+```
+9. Depois, define-se a função como UDF no spark
+```
+udf_Teste_function_ac = udf(udf_Teste_function)
+```
+10. Agora, podemos aplicar ao processamento a função, como se fosse nativa do sistema, aqui apenas fiz uma divisão do tempo de vôo pela distancia percorrida, apenas um processamento simples
+```
+df.select(col("Tail_Number"),col("AirTime"),col("Distance"),udf_Teste_function_ac(col("AirTime"),col("Distance"))).show()
+```
+#### Resultado
+```
++-----------+-------+--------+-------------------------------------+
+|Tail_Number|AirTime|Distance|udf_Teste_function(AirTime, Distance)|
++-----------+-------+--------+-------------------------------------+
+|     N297US|  153.0|   991.0|                  0.15438950554994954|
+|     N946AT|  141.0|  1066.0|                  0.13227016885553472|
+|     N665MQ|  103.0|   773.0|                   0.1332470892626132|
+|     N6705Y|  220.0|  1979.0|                  0.11116725618999494|
+|     N504AU|   80.0|   529.0|                  0.15122873345935728|
+|     N925DL|   28.0|   190.0|                  0.14736842105263157|
+|     N27724|   94.0|   563.0|                   0.1669626998223801|
+|     N927XJ|   35.0|   192.0|                  0.18229166666666666|
+|     N522LR|   59.0|   316.0|                  0.18670886075949367|
+|     N8688J|  114.0|   793.0|                   0.1437578814627995|
+|       null|   null|   109.0|                                    0|
+|     N374SW|   77.0|   562.0|                  0.13701067615658363|
+                             .
+                             .
+                             .
+```
