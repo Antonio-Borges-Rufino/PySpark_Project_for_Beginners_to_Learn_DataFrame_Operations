@@ -63,4 +63,58 @@ df_menor.select("Year","Month").groupBy("Year","Month").count().orderBy("Year","
         .
         .
 ```
-4.
+4. Aqui, o caso de uso foi ver a quantidade de cancelamentos de vôos por mes em todas as cidades.
+```
+df.select("Year","Month","OriginCityName").filter("Cancelled = 1.0").groupBy("Year","Month","OriginCityName").count().orderBy("count",ascending=False).show()
+```
+#### Resultado
+```
++----+-----+--------------------+-----+
+|Year|Month|      OriginCityName|count|
++----+-----+--------------------+-----+
+|1998|    9|     Minneapolis, MN|    3|
+|1996|    1|        New York, NY|    3|
+|1999|    9|          Newark, NJ|    3|
+|1996|    1|      Washington, DC|    3|
+|2020|    3|         Chicago, IL|    3|
+|2019|    1|         Chicago, IL|    2|
+               .
+               .
+               .
+```
+5. Agora, queremos saber a média de atraso dos vôos que atrasaram mais de 15 minutos
+```
+df.select("Reporting_Airline",'ArrDelay').filter("ArrDel15 = 1.0").groupBy("Reporting_Airline").mean("ArrDelay").show()
+```
+#### Resultado
+```
++-----------------+------------------+
+|Reporting_Airline|     avg(ArrDelay)|
++-----------------+------------------+
+|               UA| 55.84326923076923|
+|               EA| 40.78431372549019|
+|               PI|31.704918032786885|
+|               NK|  65.0576923076923|
+|               PS|              34.0|
+                  .
+                  .
+                  .
+```
+6. Aqui, pesquisei qual foi a companhia aerea que mais teve horário cumprido.
+```
+df.select("Year","Reporting_Airline").filter((df.DepDelay<=0)&(df.ArrDelay<=0)).groupBy("Year","Reporting_Airline").count().orderBy("Reporting_Airline","Year").show()
+```
+#### Resultado
+```
++----+-----------------+-----+
+|Year|Reporting_Airline|count|
++----+-----------------+-----+
+|2007|               9E|   30|
+|2008|               9E|   39|
+|2009|               9E|   42|
+|2010|               9E|   37|
+|2013|               9E|   61|
+              .
+              .
+              .
+```
